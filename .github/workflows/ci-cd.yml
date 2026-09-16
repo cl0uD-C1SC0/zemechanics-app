@@ -1,0 +1,71 @@
+name: CI/CD - App
+
+on:
+  push:
+    branches: 
+      - main
+      - feat/*
+      - develop
+      - homolog
+
+permissions:
+  id-token: write   # necessário para OIDC
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: zemechanics
+  ACCOUNT_ID: 372454852741
+  EKS_CLUSTER: zemechanics-cluster
+  DEPLOYMENT_NAME: mecanica-dp
+  NAMESPACE: zemechanics
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Rodar testes
+        env:
+          DATABASE_URL: "sqlite:///./test.db"
+        run: pytest
+
+      - name: Configurar credenciais AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/github-actions-zemechanics-app
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login no ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag e push da imagem
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Atualizar kubeconfig
+        run: aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
+
+      - name: Rollout restart do Deployment
+        run: kubectl rollout restart deployment/$DEPLOYMENT_NAME -n $NAMESPACE
+
+      - name: Aguardar rollout concluir
+        run: kubectl rollout status deployment/$DEPLOYMENT_NAME -n $NAMESPACE --timeout=120s

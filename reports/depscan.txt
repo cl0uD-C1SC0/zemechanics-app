@@ -1,0 +1,31 @@
+
+Vulnerability Disclosure Report                                                 
+
+The table below lists all vulnerabilities identified in this project. Review and
+triage the information to identify any critical vulnerabilities.                
+
+                      Dependency Scan Results (UNIVERSAL)                       
+╔══════════════════════╤══════════════════════╤═════════════╤══════════╤═══════╗
+║ Dependency Tree      │ Insights             │ Fix Version │ Severity │ Score ║
+╟──────────────────────┼──────────────────────┼─────────────┼──────────┼───────╢
+║ pip@26.0.1 ⬅         │                      │ 26.1        │ MEDIUM   │   5.0 ║
+║ CVE-2026-6357        │                      │             │          │       ║
+║ pip@26.0.1 ⬅         │                      │             │ MEDIUM   │   4.6 ║
+║ CVE-2026-3219        │                      │             │          │       ║
+╟──────────────────────┼──────────────────────┼─────────────┼──────────┼───────╢
+║ pysonar@1.5.0.4793   │ 📓 Indirect          │ 2.7.0       │ HIGH     │   8.9 ║
+║ └── requests@2.33.1  │ dependency           │             │          │       ║
+║     └── urllib3@2.6… │                      │             │          │       ║
+║         ⬅            │                      │             │          │       ║
+║         CVE-2026-44… │                      │             │          │       ║
+║ pysonar@1.5.0.4793   │                      │             │ HIGH     │   8.2 ║
+║ └── requests@2.33.1  │                      │             │          │       ║
+║     └── urllib3@2.6… │                      │             │          │       ║
+║         ⬅            │                      │             │          │       ║
+║         CVE-2026-44… │                      │             │          │       ║
+╚══════════════════════╧══════════════════════╧═════════════╧══════════╧═══════╝
+                            Vulnerabilities count: 4                            
+
+╭────────────── Recommendation ───────────────╮
+│ ✅ No package requires immediate attention. │
+╰─────────────────────────────────────────────╯

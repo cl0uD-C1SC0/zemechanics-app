@@ -1,0 +1,67 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: mecanica_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mecanica
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+  maildev:
+    image: maildev/maildev
+    ports:
+      - "1025:1025" 
+      - "1080:1080" 
+    restart: always
+
+  api:
+    build: .
+    container_name: mecanica_api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: mysql+pymysql://root:root@db:3306/mecanica
+      SECRET_KEY: 1234
+      SECRET_KEY_JWT: admin123
+      USER_NAME: admin
+      USER_PASSWORD: admin1234
+      MAIL_SERVER_ADDRESS: maildev
+    depends_on:
+      - db
+
+  db_sonarqube:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonarqube
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+
+  sonarqube:
+    image: sonarqube:community
+    restart: always
+    depends_on:
+      - db_sonarqube
+    environment:
+      - SONAR_JDBC_URL=jdbc:postgresql://db_sonarqube:5432/sonarqube
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonar
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+volumes:
+  mysql_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  postgresql_data:
