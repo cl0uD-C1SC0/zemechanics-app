@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from app.database import Base, get_db
 from app.main import app
 
-from app.domain.models.Cliente_model import Cliente
+from app.domain.models.cliente_model import Cliente
 from app.domain.models.Veiculo_model import Veiculo
 from app.domain.models.Peca_model import Peca
 from app.domain.models.Servico_model import Servicos
